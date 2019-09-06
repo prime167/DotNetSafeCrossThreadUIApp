@@ -7,10 +7,12 @@ namespace SafeCrossThreadUIApp
     public partial class Form1 : Form
     {
         private System.Threading.Timer _timer;
+        private readonly SynchronizationContext _context;
 
         public Form1()
         {
             InitializeComponent();
+            _context = SynchronizationContext.Current ?? new SynchronizationContext();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -20,17 +22,8 @@ namespace SafeCrossThreadUIApp
 
         private void UpdateTime(object state)
         {
-            try
-            {
-                Invoke(new MethodInvoker(() =>
-                {
-                    lblTime.Text = DateTime.Now.ToString("hh:mm:ss");
-
-                }));
-            }
-            catch (Exception e) when (e is ObjectDisposedException)
-            {
-            }
+            //_context.Post(delegate { lblTime.Text = DateTime.Now.ToString("hh:mm:ss");}, null);
+            _context.Send(delegate { lblTime.Text = DateTime.Now.ToString("hh:mm:ss"); }, null);
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
