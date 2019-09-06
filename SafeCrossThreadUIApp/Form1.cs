@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace SafeCrossThreadUIApp
@@ -6,6 +7,7 @@ namespace SafeCrossThreadUIApp
     public partial class Form1 : Form
     {
         private System.Threading.Timer _timer;
+
         public Form1()
         {
             InitializeComponent();
@@ -18,7 +20,22 @@ namespace SafeCrossThreadUIApp
 
         private void UpdateTime(object state)
         {
-            lblTime.Text = DateTime.Now.ToString("hh:mm:ss");
+            try
+            {
+                Invoke(new MethodInvoker(() =>
+                {
+                    lblTime.Text = DateTime.Now.ToString("hh:mm:ss");
+
+                }));
+            }
+            catch (Exception e) when (e is ObjectDisposedException)
+            {
+            }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            _timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
     }
 }
